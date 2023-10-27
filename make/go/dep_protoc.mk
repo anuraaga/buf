@@ -12,7 +12,7 @@ $(call _assert_var,CACHE_BIN)
 # Settable
 # https://github.com/protocolbuffers/protobuf/releases 20230216 checked 20230216
 # NOTE: Set to version compatible with genproto source code (only used in tests).
-PROTOC_VERSION ?= 22.0
+PROTOC_VERSION ?= 25.0-rc2
 
 ifeq ($(UNAME_OS),Darwin)
 PROTOC_OS := osx
@@ -27,6 +27,10 @@ PROTOC_OS = linux
 PROTOC_ARCH := $(UNAME_ARCH)
 endif
 
+# For some reason, the actual artifacts to download contain a dash after
+# the "rc" in release candidate builds :/
+PROTOC_DOWNLOAD_FILE_VERSION = $(subst rc,rc-,$(PROTOC_VERSION))
+
 PROTOC := $(CACHE_VERSIONS)/protoc/$(PROTOC_VERSION)
 $(PROTOC):
 	@if ! command -v curl >/dev/null 2>/dev/null; then echo "error: curl must be installed"  >&2; exit 1; fi
@@ -35,7 +39,7 @@ $(PROTOC):
 	@rm -rf $(CACHE_INCLUDE)/google
 	@mkdir -p $(CACHE_BIN) $(CACHE_INCLUDE)
 	$(eval PROTOC_TMP := $(shell mktemp -d))
-	cd $(PROTOC_TMP); curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_OS)-$(PROTOC_ARCH).zip -o protoc.zip
+	cd $(PROTOC_TMP); curl -sSL https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_DOWNLOAD_FILE_VERSION)-$(PROTOC_OS)-$(PROTOC_ARCH).zip -o protoc.zip
 	cd $(PROTOC_TMP); unzip protoc.zip && mv bin/protoc $(CACHE_BIN)/protoc && mv include/google $(CACHE_INCLUDE)/google
 	@rm -rf $(PROTOC_TMP)
 	@rm -rf $(dir $(PROTOC))

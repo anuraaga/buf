@@ -36,7 +36,7 @@ require (
 	golang.org/x/sync v0.4.0
 	golang.org/x/term v0.13.0
 	golang.org/x/tools v0.14.0
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/protobuf v1.31.1-0.20231027082548-f4a6c1f6e5c1
 	gopkg.in/yaml.v3 v3.0.1
 )
 

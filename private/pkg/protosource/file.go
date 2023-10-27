@@ -34,7 +34,7 @@ type file struct {
 	enums          []Enum
 	services       []Service
 	extensions     []Field
-	edition        string
+	edition        descriptorpb.Edition
 	optimizeMode   descriptorpb.FileOptions_OptimizeMode
 }
 
@@ -67,7 +67,7 @@ func (f *file) Extensions() []Field {
 }
 
 func (f *file) Edition() string {
-	return f.edition
+	return strings.TrimPrefix(strings.ToLower(f.edition.String()), "edition_")
 }
 
 func (f *file) CsharpNamespace() string {
