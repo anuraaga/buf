@@ -441,7 +441,8 @@ func imageToCodeGeneratorRequest(
 		request.Parameter = proto.String(parameter)
 	}
 	for i, imageFile := range imageFiles {
-		request.ProtoFile[i] = imageFile.Proto()
+		// ProtoFile should include runtime-retained options only. So strip source-only options.
+		request.ProtoFile[i] = stripSourceOnlyOptionsFromFile(imageFile.Proto())
 		if isFileToGenerate(
 			imageFile,
 			alreadyUsedPaths,
@@ -450,6 +451,9 @@ func imageToCodeGeneratorRequest(
 			includeWellKnownTypes,
 		) {
 			request.FileToGenerate = append(request.FileToGenerate, imageFile.Path())
+			// Source-only options are only made available for items in FileToGenerate.
+			// They are provided in SourceFileDescriptors.
+			request.SourceFileDescriptors = append(request.SourceFileDescriptors, imageFile.Proto())
 		}
 	}
 	return request
