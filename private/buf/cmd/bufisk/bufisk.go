@@ -16,14 +16,20 @@ package bufisk
 
 import (
 	"context"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
-	"github.com/bufbuild/buf/private/pkg/app"
 	"github.com/bufbuild/buf/private/pkg/app/appcmd"
 	"github.com/bufbuild/buf/private/pkg/app/appflag"
-	"github.com/bufbuild/buf/private/pkg/storage"
-	"github.com/bufbuild/buf/private/pkg/storage/storageos"
 	"github.com/spf13/pflag"
+)
+
+const (
+	useBufVersionEnvKey         = "USE_BUF_VERSION"
+	bufVersionFileName          = ".bufversion"
+	bufVersionLatestGithubValue = "latest"
 )
 
 // Main is the entrypoint to the buf CLI.
@@ -63,25 +69,34 @@ func run(
 	container appflag.Container,
 	flags *flags,
 ) error {
-	cacheBucket, err := storageos.NewProvider().NewReadWriteBucket(container.CacheDirPath())
+	bufVersion, err := getBufVersion()
 	if err != nil {
 		return err
 	}
-	return runForCacheBucket(
-		ctx,
-		container,
-		cacheBucket,
-	)
-}
-
-func runForCacheBucket(
-	ctx context.Context,
-	container app.EnvContainer,
-	cacheBucket storage.ReadWriteBucket,
-) error {
+	_ = bufVersion
 	return nil
 }
 
-func getBufVersion(container appflag.Container) (string, error) {
-	return "v1.28.1", nil
+func getBufVersion() (string, error) {
+	if useBufVersionEnvValue := os.Getenv(useBufVersionEnvKey); useBufVersionEnvValue != "" {
+		return useBufVersionEnvValue, nil
+	}
+	pwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	curDirPath := pwd
+	for {
+		data, err := os.ReadFile(filepath.Join(curDirPath, bufVersionFileName))
+		// Ignore all errors, not just fs.ErrNotExist - we don't want this program to fail
+		// on bad permissions. We could choose to stop on the first bad permissions error.
+		if err == nil {
+			return strings.TrimSpace(string(data)), nil
+		}
+		if curDirPath == string(os.PathSeparator) {
+			break
+		}
+		curDirPath = filepath.Dir(curDirPath)
+	}
+	return bufVersionLatestGithubValue, nil
 }
