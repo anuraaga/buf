@@ -3,6 +3,7 @@ GO_GET_PKGS := $(GO_GET_PKGS) \
 	github.com/bufbuild/protocompile@146b831231f7f7c1a19b09065875b9778d3d5d25
 GO_BINS := $(GO_BINS) \
 	cmd/buf \
+	cmd/bufisk \
 	cmd/protoc-gen-buf-breaking \
 	cmd/protoc-gen-buf-lint \
 	private/buf/cmd/buf-digest \

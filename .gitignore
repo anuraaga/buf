@@ -6,6 +6,7 @@
 /.tmp/
 /.vscode/
 /cmd/buf/buf
+/cmd/bufisk/bufisk
 /cmd/protoc-gen-buf-breaking/protoc-gen-buf-breaking
 /cmd/protoc-gen-buf-lint/protoc-gen-buf-lint
 /private/buf/cmd/buf-digest/buf-digest
