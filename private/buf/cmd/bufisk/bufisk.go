@@ -18,8 +18,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/bufbuild/buf/private/pkg/app"
 	"github.com/bufbuild/buf/private/pkg/app/appcmd"
 	"github.com/bufbuild/buf/private/pkg/app/appflag"
+	"github.com/bufbuild/buf/private/pkg/storage"
+	"github.com/bufbuild/buf/private/pkg/storage/storageos"
 	"github.com/spf13/pflag"
 )
 
@@ -60,5 +63,25 @@ func run(
 	container appflag.Container,
 	flags *flags,
 ) error {
+	cacheBucket, err := storageos.NewProvider().NewReadWriteBucket(container.CacheDirPath())
+	if err != nil {
+		return err
+	}
+	return runForCacheBucket(
+		ctx,
+		container,
+		cacheBucket,
+	)
+}
+
+func runForCacheBucket(
+	ctx context.Context,
+	container app.EnvContainer,
+	cacheBucket storage.ReadWriteBucket,
+) error {
 	return nil
+}
+
+func getBufVersion(container appflag.Container) (string, error) {
+	return "v1.28.1", nil
 }
