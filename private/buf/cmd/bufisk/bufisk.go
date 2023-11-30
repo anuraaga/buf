@@ -16,6 +16,7 @@ package bufisk
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -73,6 +74,7 @@ func run(
 	if err != nil {
 		return err
 	}
+	bufFilePath := filepath.Join(container.CacheDirPath())
 	_ = bufVersion
 	return nil
 }
@@ -98,5 +100,5 @@ func getBufVersion() (string, error) {
 		}
 		curDirPath = filepath.Dir(curDirPath)
 	}
-	return bufVersionLatestGithubValue, nil
+	return "", fmt.Errorf("%s not set and no %s file found", useBufVersionEnvKey, bufVersionFileName)
 }
