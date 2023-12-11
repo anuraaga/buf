@@ -101,13 +101,13 @@ func PutBufWorkYAMLFileForPrefix(
 }
 
 // ReadBufWorkYAMLFile reads the buf.work.yaml file from the io.Reader.
-func ReadBufWorkYAMLFile(reader io.Reader) (BufWorkYAMLFile, error) {
-	return readFile(reader, "workspace file", readBufWorkYAMLFile)
+func ReadBufWorkYAMLFile(reader io.Reader, fileIdentifier string) (BufWorkYAMLFile, error) {
+	return readFile(reader, fileIdentifier, readBufWorkYAMLFile)
 }
 
 // WriteBufWorkYAMLFile writes the buf.work.yaml to the io.Writer.
-func WriteBufWorkYAMLFile(writer io.Writer, bufWorkYAMLFile BufWorkYAMLFile) error {
-	return writeFile(writer, "workspace file", bufWorkYAMLFile, writeBufWorkYAMLFile)
+func WriteBufWorkYAMLFile(writer io.Writer, bufWorkYAMLFile BufWorkYAMLFile, fileIdentifier string) error {
+	return writeFile(writer, fileIdentifier, bufWorkYAMLFile, writeBufWorkYAMLFile)
 }
 
 // *** PRIVATE ***

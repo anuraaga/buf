@@ -101,16 +101,19 @@ func GetBufYAMLFileForPrefix(
 func GetBufYAMLFileForOverride(override string) (BufYAMLFile, error) {
 	var data []byte
 	var err error
+	var fileIdentifier string
 	switch filepath.Ext(override) {
 	case ".json", ".yaml", ".yml":
+		fileIdentifier = override
 		data, err = os.ReadFile(override)
 		if err != nil {
 			return nil, fmt.Errorf("could not read file: %v", err)
 		}
 	default:
+		fileIdentifier = "configuration file"
 		data = []byte(override)
 	}
-	return ReadBufYAMLFile(bytes.NewReader(data))
+	return ReadBufYAMLFile(bytes.NewReader(data), fileIdentifier)
 }
 
 // GetBufYAMLFileForOverride get the buf.yaml file for either the usually-flag-based override,
@@ -152,13 +155,13 @@ func PutBufYAMLFileForPrefix(
 }
 
 // ReadBufYAMLFile reads the BufYAMLFile from the io.Reader.
-func ReadBufYAMLFile(reader io.Reader) (BufYAMLFile, error) {
-	return readFile(reader, "config file", readBufYAMLFile)
+func ReadBufYAMLFile(reader io.Reader, fileIdentifier string) (BufYAMLFile, error) {
+	return readFile(reader, fileIdentifier, readBufYAMLFile)
 }
 
 // WriteBufYAMLFile writes the BufYAMLFile to the io.Writer.
-func WriteBufYAMLFile(writer io.Writer, bufYAMLFile BufYAMLFile) error {
-	return writeFile(writer, "config file", bufYAMLFile, writeBufYAMLFile)
+func WriteBufYAMLFile(writer io.Writer, bufYAMLFile BufYAMLFile, fileIdentifier string) error {
+	return writeFile(writer, fileIdentifier, bufYAMLFile, writeBufYAMLFile)
 }
 
 // *** PRIVATE ***

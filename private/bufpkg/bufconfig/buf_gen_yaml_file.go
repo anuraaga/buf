@@ -15,10 +15,13 @@
 package bufconfig
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 
 	"github.com/bufbuild/buf/private/pkg/encoding"
 	"github.com/bufbuild/buf/private/pkg/slicesext"
@@ -70,6 +73,48 @@ func GetBufGenYAMLFileForPrefix(
 	return getFileForPrefix(ctx, bucket, prefix, bufGenYAMLFileNames, readBufGenYAMLFile)
 }
 
+// GetBufGenYAMLFileForOverride get the buf.gen.yaml file for either the usually-flag-based override.
+//
+//   - If the override is set and ends in .json, .yaml, or .yml, the override is treated as a
+//     **direct file path on disk** and read (ie not via buckets).
+//   - If the override is otherwise non-empty, it is treated as raw data.
+//
+// This function is the result of the endlessly annoying and shortsighted design decision that the
+// original author of this repository made to allow overriding configuration files on the command line.
+// Of course, the original author never envisioned buf.work.yamls, merging buf.work.yamls into buf.yamls,
+// buf.gen.yamls, or anything of the like, and was very concentrated on "because Bazel."
+func GetBufGenYAMLFileForOverride(override string) (BufGenYAMLFile, error) {
+	var data []byte
+	var err error
+	var fileIdentifier string
+	switch filepath.Ext(override) {
+	case ".json", ".yaml", ".yml":
+		fileIdentifier = override
+		data, err = os.ReadFile(override)
+		if err != nil {
+			return nil, fmt.Errorf("could not read file: %v", err)
+		}
+	default:
+		fileIdentifier = "generation config"
+		data = []byte(override)
+	}
+	return ReadBufGenYAMLFile(bytes.NewReader(data), fileIdentifier)
+}
+
+// GetBufGenYAMLFileForOverride get the buf.gen.yaml file for either the usually-flag-based override,
+// or if the override is not set, falls back to the prefix.
+func GetBufGenYAMLFileForPrefixOrOverride(
+	ctx context.Context,
+	bucket storage.ReadBucket,
+	prefix string,
+	override string,
+) (BufGenYAMLFile, error) {
+	if override != "" {
+		return GetBufGenYAMLFileForOverride(override)
+	}
+	return GetBufGenYAMLFileForPrefix(ctx, bucket, prefix)
+}
+
 // GetBufGenYAMLFileForPrefix gets the buf.gen.yaml file version at the given bucket prefix.
 //
 // The buf.gen.yaml file will be attempted to be read at prefix/buf.gen.yaml.
@@ -95,13 +140,13 @@ func PutBufGenYAMLFileForPrefix(
 }
 
 // ReadBufGenYAMLFile reads the BufGenYAMLFile from the io.Reader.
-func ReadBufGenYAMLFile(reader io.Reader) (BufGenYAMLFile, error) {
-	return readFile(reader, "generation file", readBufGenYAMLFile)
+func ReadBufGenYAMLFile(reader io.Reader, fileIdentifier string) (BufGenYAMLFile, error) {
+	return readFile(reader, fileIdentifier, readBufGenYAMLFile)
 }
 
 // WriteBufGenYAMLFile writes the BufGenYAMLFile to the io.Writer.
-func WriteBufGenYAMLFile(writer io.Writer, bufGenYAMLFile BufGenYAMLFile) error {
-	return writeFile(writer, "generation file", bufGenYAMLFile, writeBufGenYAMLFile)
+func WriteBufGenYAMLFile(writer io.Writer, bufGenYAMLFile BufGenYAMLFile, fileIdentifier string) error {
+	return writeFile(writer, fileIdentifier, bufGenYAMLFile, writeBufGenYAMLFile)
 }
 
 // *** PRIVATE ***
